@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+import os
 
 # 接続に必要な設定
 intents = discord.Intents.default()
@@ -11,7 +12,7 @@ GLOBAL_CH_NAME = "global-chat"
 
 @bot.event
 async def on_ready():
-    # 起動したらPCの画面に通知が出る
+    # 起動したらログ画面に通知が出る
     print(f'ログインしました: {bot.user.name}')
 
 @bot.event
@@ -28,13 +29,19 @@ async def on_message(message):
         embed.set_footer(text=f"送信元: {message.guild.name}")
 
         # 元のメッセージを消す（グローバルチャットっぽくするため）
-        await message.delete()
+        try:
+            await message.delete()
+        except:
+            pass # 権限がない場合は消さずに続行
 
         # Botが参加している全サーバーのチャンネルをループ
         for guild in bot.guilds:
             for channel in guild.text_channels:
                 if channel.name == GLOBAL_CH_NAME:
-                    await channel.send(embed=embed)
+                    # 同じチャンネル以外（他のサーバー）に送信
+                    if channel.id != message.channel.id:
+                        await channel.send(embed=embed)
 
-# 【重要】ここにデベロッパーポータルでコピーした自分のトークンを貼る
-bot.run("DISCORD_TOKEN")
+# RenderのEnvironmentで設定した「DISCORD_TOKEN」を読み込む
+token = os.getenv("DISCORD_TOKEN")
+bot.run(token)

@@ -37,4 +37,4 @@ async def on_message(message):
                     await channel.send(embed=embed)
 
 # 【重要】ここにデベロッパーポータルでコピーした自分のトークンを貼る
-bot.run("MTQ1NzI4MDIwNzM3MDE5MDkwMg.GdkI4O.P0dt_iQDCgHdCT3DabBSdt1LFWBl2woa92FplE")
+bot.run("DISCORD_TOKEN")

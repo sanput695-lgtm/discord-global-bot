@@ -12,16 +12,16 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
         self.wfile.write(b"Bot is alive")
 
 def run_health_check_server():
-    # RenderはPORT環境変数（デフォルト10000）で待機することを期待します
+    # Renderは10000番ポートでの待機を期待します
     port = int(os.environ.get("PORT", 10000))
     server = HTTPServer(("0.0.0.0", port), HealthCheckHandler)
     server.serve_forever()
 
-# 別スレッドでサーバーを動かし、Botの邪魔をしないようにします
+# 別スレッドでサーバーを起動
 threading.Thread(target=run_health_check_server, daemon=True).start()
 # ---------------------------------------------
 
-# Botの基本設定
+# Botの設定
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -36,19 +36,25 @@ async def on_ready():
 async def on_message(message):
     if message.author.bot:
         return
+
     if message.channel.name == GLOBAL_CH_NAME:
         embed = discord.Embed(description=message.content, color=0x00ff00)
         embed.set_author(name=message.author.display_name, icon_url=message.author.display_avatar.url)
         embed.set_footer(text=f"送信元: {message.guild.name}")
+
         try:
             await message.delete()
         except:
             pass
+
+        # Botが参加している全サーバーのチャンネルをループ
         for guild in bot.guilds:
             for channel in guild.text_channels:
                 if channel.name == GLOBAL_CH_NAME:
-                    if channel.id != message.channel.id:
+                    try:
                         await channel.send(embed=embed)
+                    except Exception as e:
+                        print(f"送信エラー: {e}")
 
 # 環境変数からトークンを読み取って起動
 token = os.getenv("DISCORD_TOKEN")
